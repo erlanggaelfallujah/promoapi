@@ -11,7 +11,7 @@ public class Application {
     /*
         TODO:
         - unit test
-        - multi campaign
+        - multi campaign (DONE)
         - multi reward
         - stress test gatling
      */

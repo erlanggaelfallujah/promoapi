@@ -33,52 +33,59 @@ public class PromoServiceImpl implements PromoService {
     @Override
     public Single<PromoResponseDto> process(PromoRequestDto dto) {
         Observable<List<Campaign>> campaignsObs = Observable.just(campaignRepository.findCampaignActive(dto));
+        PromoResponseDto responseDto = new PromoResponseDto();
+
         return Single.fromObservable(campaignsObs.map(campaigns -> {
-            PromoResponseDto responseDto = new PromoResponseDto();
             if(campaigns==null || campaigns.isEmpty()){
-                responseDto.setResponseCode("A1");
+                Reward reward = new Reward();
+                reward.setResponseCode("A1");
+                responseDto.addReward(reward);
                 return responseDto;
             }
 
-            if(campaigns.get(0).getRewardType()== REWARD_TYPE_DISCOUNT){
-                Observable<Discount> discountObs = Observable.fromIterable(discountRepository.findOne(campaigns.get(0).getDiscountId()));
-
-                discountObs.doOnEach(new Observer<Discount>() {
-                    @Override
-                    public void onSubscribe(Disposable disposable) {
-                        System.out.println("onSubscription");
-                    }
-
-                    @Override
-                    public void onNext(Discount discount) {
-                        System.out.println("onNext");
-
-                        int percentage = discount.getPercentage();
-                        double amountTrx = dto.getAmount();
-                        double nettAmount = (percentage * amountTrx) / 100;
-                        responseDto.setNetAmount(amountTrx-nettAmount);
-
+            for(Campaign campaign : campaigns){
+                if(campaign.getRewardType()== REWARD_TYPE_DISCOUNT){
+                    Observable<Discount> discountObs = Observable.fromIterable(discountRepository.findOne(campaign.getDiscountId()));
+                    discountObs.doOnEach(new Observer<Discount>() {
                         Reward reward = new Reward();
-                        reward.setDiscount(discount);
-                        responseDto.addReward(reward);
-                    }
 
-                    @Override
-                    public void onError(Throwable throwable) {
-                        System.out.println("onError => " + throwable.getLocalizedMessage());
-                    }
+                        @Override
+                        public void onSubscribe(Disposable disposable) {
+                            System.out.println("onSubscription");
+                        }
 
-                    @Override
-                    public void onComplete() {
-                        System.out.println("onComplete");
-                        responseDto.setResponseCode("00");
-                    }
-                }).subscribe();
+                        @Override
+                        public void onNext(Discount discount) {
+                            System.out.println("onNext");
 
+                            int percentage = discount.getPercentage();
+                            double amountTrx = responseDto.getNetAmount()!=null ? responseDto.getNetAmount() : dto.getAmount();
+                            double nettAmount = (percentage * amountTrx) / 100;
+                            responseDto.setNetAmount(amountTrx-nettAmount);
+
+                            reward.setDiscount(discount);
+                            responseDto.addReward(reward);
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable) {
+                            reward.setResponseCode("X0");
+                            System.out.println("onError => " + throwable.getLocalizedMessage());
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            System.out.println("onComplete");
+                            reward.setResponseCode("00");
+                            responseDto.setResponseCode("00");
+                        }
+                    }).subscribe();
+
+                }
             }
 
             System.out.println("return response");
-            return new PromoResponseDto();
+            return responseDto;
         }));
     }
 }

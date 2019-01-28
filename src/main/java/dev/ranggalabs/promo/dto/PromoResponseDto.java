@@ -1,5 +1,6 @@
 package dev.ranggalabs.promo.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dev.ranggalabs.promo.model.Reward;
 
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.List;
 /**
  * Created by erlangga on 13/01/19.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PromoResponseDto extends PromoRequestDto {
     private String responseCode;
     private String refNumber;
