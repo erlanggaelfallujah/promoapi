@@ -12,7 +12,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PromoResponseDto extends PromoRequestDto {
     private String responseCode;
-    private String refNumber;
     private Double netAmount;
     private List<Reward> rewards;
 
@@ -38,14 +37,6 @@ public class PromoResponseDto extends PromoRequestDto {
 
     public void setResponseCode(String responseCode) {
         this.responseCode = responseCode;
-    }
-
-    public String getRefNumber() {
-        return refNumber;
-    }
-
-    public void setRefNumber(String refNumber) {
-        this.refNumber = refNumber;
     }
 
     public Double getNetAmount() {

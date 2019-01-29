@@ -6,6 +6,15 @@ package dev.ranggalabs.promo.model;
 public class Reward {
     private String responseCode;
     private Discount discount;
+    private long campaignId;
+
+    public long getCampaignId() {
+        return campaignId;
+    }
+
+    public void setCampaignId(long campaignId) {
+        this.campaignId = campaignId;
+    }
 
     public String getResponseCode() {
         return responseCode;

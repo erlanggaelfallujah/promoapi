@@ -31,7 +31,7 @@ public class CampaignRepositoryImpl implements CampaignRepository {
 
     @Override
     public List<Campaign> findCampaignActive(PromoRequestDto dto) {
-        StringBuilder sql = new StringBuilder("SELECT id,name,reward_type,discount_id,campaign_id FROM campaign c ");
+        StringBuilder sql = new StringBuilder("SELECT c.id as id,c.name as name,c.reward_type as reward_type,pm.discount_id as discount_id FROM campaign c ");
         sql.append("JOIN promo_map pm ON c.id=pm.campaign_id ");
         sql.append("WHERE c.start_date <= :date ");
         sql.append("AND c.end_date >= :date ");
@@ -48,7 +48,6 @@ public class CampaignRepositoryImpl implements CampaignRepository {
                     .addParameter("date", new SimpleDateFormat("yyyy-MM-dd").format(dto.getTransactionDate()))
                     .addColumnMapping("reward_type", "rewardType")
                     .addColumnMapping("discount_id", "discountId")
-                    .addColumnMapping("campaign_id", "id")
                     .executeAndFetch(Campaign.class);
             return entities;
         }

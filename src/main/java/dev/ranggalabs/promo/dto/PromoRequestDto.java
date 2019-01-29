@@ -14,6 +14,15 @@ public class PromoRequestDto {
             (shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date transactionDate;
     private Double amount;
+    private String refNumber;
+
+    public String getRefNumber() {
+        return refNumber;
+    }
+
+    public void setRefNumber(String refNumber) {
+        this.refNumber = refNumber;
+    }
 
     public Double getAmount() {
         return amount;
