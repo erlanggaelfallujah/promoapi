@@ -10,9 +10,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Application {
     /*
         TODO:
-        - unit test
         - multi campaign (DONE)
-        - multi reward
+        - multi reward (DONE)
+        - logging to txn log
+        - unit test
         - stress test gatling
      */
 

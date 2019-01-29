@@ -21,15 +21,24 @@ public class CampaignRepositoryImpl implements CampaignRepository {
     @Autowired
     private Sql2o sql2o;
 
+    /*
+        SELECT id,name,reward_type,discount_id FROM promo.campaign c
+        JOIN promo.promo_map pm ON c.id = pm.campaign_id
+        WHERE c.start_date <= '2019-01-28' AND c.end_date>= '2019-01-28'
+        AND c.min_amount<= 10000 AND c.max_amount>= 15000
+        AND c.mid = 'midtest' AND c.tid='tidtest';
+     */
+
     @Override
     public List<Campaign> findCampaignActive(PromoRequestDto dto) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM campaign ");
-        sql.append("WHERE start_date <= :date ");
-        sql.append("AND end_date >= :date ");
-        sql.append("AND min_amount <= :amount ");
-        sql.append("AND max_amount >= :amount ");
-        sql.append("AND mid = :mid ");
-        sql.append("AND tid = :tid ");
+        StringBuilder sql = new StringBuilder("SELECT id,name,reward_type,discount_id,campaign_id FROM campaign c ");
+        sql.append("JOIN promo_map pm ON c.id=pm.campaign_id ");
+        sql.append("WHERE c.start_date <= :date ");
+        sql.append("AND c.end_date >= :date ");
+        sql.append("AND c.min_amount <= :amount ");
+        sql.append("AND c.max_amount >= :amount ");
+        sql.append("AND c.mid = :mid ");
+        sql.append("AND c.tid = :tid ");
 
         List<Campaign> entities = null;
         try (Connection conn = sql2o.open(); Query query = conn.createQuery(sql.toString())) {
@@ -37,12 +46,9 @@ public class CampaignRepositoryImpl implements CampaignRepository {
                     .addParameter("tid", dto.getTid())
                     .addParameter("amount", dto.getAmount())
                     .addParameter("date", new SimpleDateFormat("yyyy-MM-dd").format(dto.getTransactionDate()))
-                    .addColumnMapping("start_date", "startDate")
-                    .addColumnMapping("end_date", "endDate")
-                    .addColumnMapping("min_amount", "minAmount")
-                    .addColumnMapping("max_amount", "maxAmount")
                     .addColumnMapping("reward_type", "rewardType")
                     .addColumnMapping("discount_id", "discountId")
+                    .addColumnMapping("campaign_id", "id")
                     .executeAndFetch(Campaign.class);
             return entities;
         }
