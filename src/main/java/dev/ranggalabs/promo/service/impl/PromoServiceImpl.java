@@ -8,6 +8,7 @@ import dev.ranggalabs.promo.repository.DiscountRepository;
 import dev.ranggalabs.promo.repository.TxnLogDetailRepository;
 import dev.ranggalabs.promo.repository.TxnLogRepository;
 import dev.ranggalabs.promo.service.PromoService;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.Single;
@@ -92,27 +93,34 @@ public class PromoServiceImpl implements PromoService {
             System.out.println("return response");
             return responseDto;
         }).doFinally(() -> {
-            TxnLog txnLog = new TxnLog();
-            txnLog.setAmount(dto.getAmount());
-            txnLog.setMid(dto.getMid());
-            txnLog.setTid(dto.getTid());
-            txnLog.setNettAmount(responseDto.getNetAmount());
-            txnLog.setRefNumber(dto.getRefNumber());
-            txnLog.setResponseCode(responseDto.getResponseCode());
-            txnLog.setTransactionDate(dto.getTransactionDate());
-            long txnLogId = txnLogRepository.save(txnLog);
+            //long txnLogId = txnLogRepository.save(txnLog);
+            Single<Long> txnLogIdSingle = Single.just(txnLogRepository.save(constructTxnLog(responseDto,dto)));
+            txnLogIdSingle.doOnEvent((aLong, throwable) -> {
+                Observable<Reward> rewardObservable = Observable.fromIterable(responseDto.getRewards());
+                rewardObservable.forEach(reward -> {
+                    TxnLogDetail txnLogDetail = new TxnLogDetail();
+                    txnLogDetail.setTxnLogId(aLong);
+                    txnLogDetail.setCampaignId(new Long(reward.getCampaignId()).intValue());
+                    txnLogDetail.setDiscountId(reward.getDiscount().getId());
+                    txnLogDetail.setResponseCode(reward.getResponseCode());
 
-            List<Reward> rewards = responseDto.getRewards();
-            for(Reward reward : rewards){
-                TxnLogDetail txnLogDetail = new TxnLogDetail();
-                txnLogDetail.setTxnLogId(txnLogId);
-                txnLogDetail.setCampaignId(new Long(reward.getCampaignId()).intValue());
-                txnLogDetail.setDiscountId(reward.getDiscount().getId());
-                txnLogDetail.setResponseCode(reward.getResponseCode());
-                txnLogDetailRepository.save(txnLogDetail);
-            }
+                    Completable.fromAction(() -> txnLogDetailRepository.save(txnLogDetail));
+                });
+            });
 
             System.out.println("doFinally()");
         }));
+    }
+
+    private TxnLog constructTxnLog(PromoResponseDto responseDto, PromoRequestDto dto){
+        TxnLog txnLog = new TxnLog();
+        txnLog.setAmount(dto.getAmount());
+        txnLog.setMid(dto.getMid());
+        txnLog.setTid(dto.getTid());
+        txnLog.setNettAmount(responseDto.getNetAmount());
+        txnLog.setRefNumber(dto.getRefNumber());
+        txnLog.setResponseCode(responseDto.getResponseCode());
+        txnLog.setTransactionDate(dto.getTransactionDate());
+        return txnLog;
     }
 }
