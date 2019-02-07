@@ -12,7 +12,7 @@ public class Application {
         TODO:
         - multi campaign (DONE)
         - multi reward (DONE)
-        - logging to txn log
+        - logging to txn log (DONE)
         - unit test
         - stress test gatling
      */

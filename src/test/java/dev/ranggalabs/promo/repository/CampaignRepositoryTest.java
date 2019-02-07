@@ -33,7 +33,6 @@ public class CampaignRepositoryTest {
         List<Campaign> campaigns = campaignRepository.findCampaignActive(dto);
         Assert.assertTrue(campaigns.size()==0);
     }
-
     @Test
     public void testFindCampaignFound(){
         PromoRequestDto dto = new PromoRequestDto();

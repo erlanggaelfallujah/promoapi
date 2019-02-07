@@ -8,11 +8,9 @@ import dev.ranggalabs.promo.repository.DiscountRepository;
 import dev.ranggalabs.promo.repository.TxnLogDetailRepository;
 import dev.ranggalabs.promo.repository.TxnLogRepository;
 import dev.ranggalabs.promo.service.PromoService;
-import io.reactivex.Completable;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.Single;
+import io.reactivex.*;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableCompletableObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +37,10 @@ public class PromoServiceImpl implements PromoService {
     public Single<PromoResponseDto> process(PromoRequestDto dto) {
         Observable<List<Campaign>> campaignsObs = Observable.just(campaignRepository.findCampaignActive(dto));
         PromoResponseDto responseDto = new PromoResponseDto();
-
         return Single.fromObservable(campaignsObs.map(campaigns -> {
             if(campaigns==null || campaigns.isEmpty()){
-                Reward reward = new Reward();
-                reward.setResponseCode("A1");
-                responseDto.addReward(reward);
+                responseDto.setResponseCode("A1");
+                responseDto.setNetAmount(dto.getAmount());
                 return responseDto;
             }
 
@@ -93,21 +89,42 @@ public class PromoServiceImpl implements PromoService {
             System.out.println("return response");
             return responseDto;
         }).doFinally(() -> {
-            //long txnLogId = txnLogRepository.save(txnLog);
-            Single<Long> txnLogIdSingle = Single.just(txnLogRepository.save(constructTxnLog(responseDto,dto)));
-            txnLogIdSingle.doOnEvent((aLong, throwable) -> {
-                Observable<Reward> rewardObservable = Observable.fromIterable(responseDto.getRewards());
-                rewardObservable.forEach(reward -> {
-                    TxnLogDetail txnLogDetail = new TxnLogDetail();
-                    txnLogDetail.setTxnLogId(aLong);
-                    txnLogDetail.setCampaignId(new Long(reward.getCampaignId()).intValue());
-                    txnLogDetail.setDiscountId(reward.getDiscount().getId());
-                    txnLogDetail.setResponseCode(reward.getResponseCode());
+            /*Single<Long> txnLogIdSingle = Single.just(txnLogRepository.save(constructTxnLog(responseDto,dto)));
+            txnLogIdSingle.subscribe(new SingleObserver<Long>() {
+                @Override
+                public void onSubscribe(Disposable disposable) {
 
-                    Completable.fromAction(() -> txnLogDetailRepository.save(txnLogDetail));
-                });
+                }
+
+                @Override
+                public void onSuccess(Long aLong) {
+                    Observable<Reward> rewardObservable = Observable.fromIterable(responseDto.getRewards());
+                    rewardObservable.forEach(reward -> {
+                        TxnLogDetail txnLogDetail = new TxnLogDetail();
+                        txnLogDetail.setTxnLogId(aLong);
+                        txnLogDetail.setCampaignId(new Long(reward.getCampaignId()).intValue());
+                        txnLogDetail.setDiscountId(reward.getDiscount().getId());
+                        txnLogDetail.setResponseCode(reward.getResponseCode());
+                        Completable.complete().subscribe(new DisposableCompletableObserver() {
+                            @Override
+                            public void onComplete() {
+                                txnLogDetailRepository.save(txnLogDetail);
+                            }
+
+                            @Override
+                            public void onError(Throwable throwable) {
+                                System.out.println(throwable.getLocalizedMessage());
+                            }
+                        });
+                    });
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+
+                }
             });
-
+*/
             System.out.println("doFinally()");
         }));
     }

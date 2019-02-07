@@ -1,5 +1,7 @@
 package dev.ranggalabs.promo.model;
 
+import dev.ranggalabs.promo.utils.RandomString;
+
 import java.util.Date;
 
 /**
@@ -63,7 +65,10 @@ public class TxnLog {
     }
 
     public String getRefNumber() {
-        return refNumber;
+        if(refNumber!=null){
+            return refNumber;
+        }
+        return new RandomString(10).nextString();
     }
 
     public void setRefNumber(String refNumber) {
