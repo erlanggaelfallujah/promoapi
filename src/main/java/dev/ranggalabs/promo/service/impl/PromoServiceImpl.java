@@ -89,7 +89,7 @@ public class PromoServiceImpl implements PromoService {
             System.out.println("return response");
             return responseDto;
         }).doFinally(() -> {
-            /*Single<Long> txnLogIdSingle = Single.just(txnLogRepository.save(constructTxnLog(responseDto,dto)));
+            Single<Long> txnLogIdSingle = Single.just(txnLogRepository.save(constructTxnLog(responseDto,dto)));
             txnLogIdSingle.subscribe(new SingleObserver<Long>() {
                 @Override
                 public void onSubscribe(Disposable disposable) {
@@ -124,7 +124,6 @@ public class PromoServiceImpl implements PromoService {
 
                 }
             });
-*/
             System.out.println("doFinally()");
         }));
     }
